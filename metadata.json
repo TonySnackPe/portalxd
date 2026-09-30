@@ -1,0 +1,6 @@
+{
+  "name": "PortalxD.com - Descargas de Juegos PC y Android",
+  "description": "El portal definitivo de descargas de juegos para PC y celulares Android con estilo neón. Juegos completos, mods, APKs y enlaces directos de alta velocidad.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
