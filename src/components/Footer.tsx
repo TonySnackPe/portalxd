@@ -1,12 +1,13 @@
 import React from 'react';
 import { PortalXdLogo } from './PortalXdLogo';
-import { ShieldCheck, Radio, ArrowUp } from 'lucide-react';
+import { ShieldCheck, Radio, ArrowUp, Scale } from 'lucide-react';
 import { Platform, Theme } from '../types';
 
 interface FooterProps {
   onSelectPlatform: (platform: Platform) => void;
   onOpenRequestModal: () => void;
   onOpenGuideModal: () => void;
+  onOpenLegalModal: (tab: 'dmca' | 'terminos' | 'privacidad') => void;
   theme?: Theme;
 }
 
@@ -14,6 +15,7 @@ export const Footer: React.FC<FooterProps> = ({
   onSelectPlatform,
   onOpenRequestModal,
   onOpenGuideModal,
+  onOpenLegalModal,
   theme = 'neon-dark',
 }) => {
   const isLight = theme === 'neon-light';
@@ -106,25 +108,44 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* Col 3: Servidores y Radio */}
+          {/* Col 3: Legal & Términos Reservados */}
           <div className="space-y-3">
-            <h4 className={`text-sm font-bold uppercase tracking-wider font-mono ${
+            <h4 className={`text-sm font-bold uppercase tracking-wider font-mono flex items-center gap-1.5 ${
               isLight ? 'text-slate-900' : 'text-white'
             }`}>
-              Servidores & Radio
+              <Scale className="w-4 h-4 text-cyan-400" />
+              <span>Términos Reservados</span>
             </h4>
             <ul className="space-y-2 text-xs">
-              <li className={`flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                <span className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]" />
-                <span>MediaFire (Mirrors Directos)</span>
+              <li>
+                <button
+                  onClick={() => onOpenLegalModal('terminos')}
+                  className={`transition-colors cursor-pointer text-left ${
+                    isLight ? 'hover:text-cyan-700 font-semibold' : 'hover:text-cyan-400'
+                  }`}
+                >
+                  Condiciones de Uso y Derechos
+                </button>
               </li>
-              <li className={`flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                <span>Mega.nz & Google Drive</span>
+              <li>
+                <button
+                  onClick={() => onOpenLegalModal('dmca')}
+                  className={`transition-colors cursor-pointer text-left ${
+                    isLight ? 'hover:text-pink-700 font-semibold' : 'hover:text-pink-400'
+                  }`}
+                >
+                  Aviso Legal DMCA & Takedown
+                </button>
               </li>
-              <li className={`flex items-center gap-1.5 ${isLight ? 'text-pink-700 font-semibold' : 'text-pink-300'}`}>
-                <Radio className="w-3.5 h-3.5 text-pink-500" />
-                <span>Radio Neón Oficial Online</span>
+              <li>
+                <button
+                  onClick={() => onOpenLegalModal('privacidad')}
+                  className={`transition-colors cursor-pointer text-left ${
+                    isLight ? 'hover:text-emerald-700 font-semibold' : 'hover:text-emerald-400'
+                  }`}
+                >
+                  Política de Privacidad y Antivirus
+                </button>
               </li>
               <li className={`text-[11px] pt-1 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
                 Contraseña ZIP: <strong className={isLight ? 'text-slate-800' : 'text-slate-300'}>PortalxD.com</strong>
@@ -134,18 +155,35 @@ export const Footer: React.FC<FooterProps> = ({
 
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar: Términos Reservados & Enlaces */}
         <div className={`pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] ${
           isLight ? 'border-slate-200 text-slate-500' : 'border-slate-900 text-slate-500'
         }`}>
           <div>
-            © 2026 <strong>PortalxD.com</strong>. Todos los derechos reservados. Diseñado para la comunidad gamer.
+            Todos los términos y derechos reservados © 2026 <strong>PortalxD.com</strong>. Diseñado para la comunidad gamer.
           </div>
 
           <div className="flex items-center gap-4">
-            <span>Aviso Legal DMCA</span>
+            <button
+              onClick={() => onOpenLegalModal('dmca')}
+              className={`hover:underline cursor-pointer ${isLight ? 'hover:text-pink-700' : 'hover:text-pink-400'}`}
+            >
+              Aviso Legal DMCA
+            </button>
             <span>·</span>
-            <span>Política de Privacidad</span>
+            <button
+              onClick={() => onOpenLegalModal('terminos')}
+              className={`hover:underline cursor-pointer ${isLight ? 'hover:text-cyan-700' : 'hover:text-cyan-400'}`}
+            >
+              Términos Reservados
+            </button>
+            <span>·</span>
+            <button
+              onClick={() => onOpenLegalModal('privacidad')}
+              className={`hover:underline cursor-pointer ${isLight ? 'hover:text-emerald-700' : 'hover:text-emerald-400'}`}
+            >
+              Privacidad
+            </button>
             <span>·</span>
             <button
               onClick={scrollToTop}

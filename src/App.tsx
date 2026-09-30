@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { GAMES_DATA } from './data/games';
-import { Game, Category, Platform, Theme } from './types';
+import { GAMES_DATA, ALL_ITEMS_DATA } from './data/games';
+import { Game, Category, Platform, Theme, UserProfile } from './types';
 import { Header } from './components/Header';
 import { MainBanner } from './components/MainBanner';
 import { GameGallery } from './components/GameGallery';
@@ -8,10 +8,17 @@ import { GameDetailModal } from './components/GameDetailModal';
 import { NeonRadioPlayer } from './components/NeonRadioPlayer';
 import { SocialBar } from './components/SocialBar';
 import { CommunityCommentWall } from './components/CommunityCommentWall';
+import { TopPostersRanking } from './components/TopPostersRanking';
+import { FaqSection } from './components/FaqSection';
 import { UploadGameModal } from './components/UploadGameModal';
 import { RequestGameModal } from './components/RequestGameModal';
 import { InstallationGuideModal } from './components/InstallationGuideModal';
+import { LegalTermsModal } from './components/LegalTermsModal';
+import { AuthModal } from './components/AuthModal';
+import { UserProfileModal } from './components/UserProfileModal';
+import { NeonToast, ToastMessage } from './components/NeonToast';
 import { Footer } from './components/Footer';
+import { Interactive3DTilt } from './components/Interactive3DTilt';
 import { Flame, Monitor, Smartphone, Heart, MessageSquare } from 'lucide-react';
 
 export default function App() {
@@ -29,9 +36,61 @@ export default function App() {
   const [sortBy, setSortBy] = useState<'downloads' | 'rating' | 'newest'>('downloads');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [modalInitialTab, setModalInitialTab] = useState<'descarga' | 'requisitos' | 'guia' | 'comentarios'>('descarga');
+  
+  // Modals state
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
+  const [legalInitialTab, setLegalInitialTab] = useState<'dmca' | 'terminos' | 'privacidad'>('terminos');
+
+  // User Profile & Registration State
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portalxd_user_profile');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return null;
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+
+  const handleLoginSuccess = (profile: UserProfile) => {
+    setCurrentUser(profile);
+    localStorage.setItem('portalxd_user_profile', JSON.stringify(profile));
+    showToast('¡Bienvenido Gamer!', `Sesión iniciada como ${profile.username} (${profile.country} ${profile.countryFlag})`, 'success');
+  };
+
+  const handleUpdateProfile = (updated: UserProfile) => {
+    setCurrentUser(updated);
+    localStorage.setItem('portalxd_user_profile', JSON.stringify(updated));
+    showToast('Perfil Actualizado', 'Tus datos, foto y país se han actualizado con éxito', 'success');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('portalxd_user_profile');
+    setIsProfileModalOpen(false);
+    showToast('Sesión Cerrada', 'Has cerrado sesión correctamente', 'info');
+  };
+
+  // Neon Toast Notification state
+  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
+
+  const showToast = (title: string, description?: string, type: 'success' | 'info' | 'pink' = 'success') => {
+    setToastMessage({
+      id: `toast-${Date.now()}`,
+      title,
+      description,
+      type,
+    });
+  };
 
   // User Uploaded Games (persisted in localStorage)
   const [customGames, setCustomGames] = useState<Game[]>(() => {
@@ -65,7 +124,7 @@ export default function App() {
 
   const [likesMap, setLikesMap] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {};
-    GAMES_DATA.forEach(g => {
+    ALL_ITEMS_DATA.forEach(g => {
       map[g.id] = g.likesCount || 0;
     });
     return map;
@@ -101,9 +160,11 @@ export default function App() {
       if (isCurrentlyLiked) {
         next.delete(gameId);
         setLikesMap(m => ({ ...m, [gameId]: Math.max(0, (m[gameId] || 0) - 1) }));
+        showToast('Me Gusta eliminado', 'El juego se ha retirado de tus favoritos.');
       } else {
         next.add(gameId);
         setLikesMap(m => ({ ...m, [gameId]: (m[gameId] || 0) + 1 }));
+        showToast('¡Me Gusta registrado!', 'Has apoyado este juego con tu voto neón.', 'pink');
       }
 
       localStorage.setItem('portalxd_user_likes', JSON.stringify(Array.from(next)));
@@ -120,27 +181,50 @@ export default function App() {
     // Register like
     setLikesMap(m => ({ ...m, [newGame.id]: newGame.likesCount || 1 }));
 
+    // Update user reputation and upload stats if logged in
+    if (currentUser) {
+      const updatedUser: UserProfile = {
+        ...currentUser,
+        gamesUploadedCount: (currentUser.gamesUploadedCount || 0) + 1,
+        reputationPoints: (currentUser.reputationPoints || 0) + 50,
+      };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('portalxd_user_profile', JSON.stringify(updatedUser));
+    }
+
     // Reset filters and scroll to games gallery to showcase the new game
     setActivePlatform('Ambos');
     setSelectedCategory('Todos');
     setSearchQuery('');
+
+    showToast(
+      '¡Aporte Publicado con Éxito!',
+      `"${newGame.title}" ya está en PortalxD.com.${currentUser ? ' ¡+50 Puntos sumados a tu perfil!' : ''}`
+    );
+
     setTimeout(() => {
       const el = document.getElementById('galeria-juegos');
       el?.scrollIntoView({ behavior: 'smooth' });
     }, 400);
   };
 
-  // Master Games List: Custom uploaded games + Built-in games
+  const handleOpenLegal = (tab: 'dmca' | 'terminos' | 'privacidad') => {
+    setLegalInitialTab(tab);
+    setIsLegalModalOpen(true);
+  };
+
+  // Master Games List: Custom uploaded games + Built-in games and programs
   const allGames = useMemo(() => {
-    return [...customGames, ...GAMES_DATA];
+    return [...customGames, ...ALL_ITEMS_DATA];
   }, [customGames]);
 
   // Filtered & Sorted Games List
   const filteredGames = useMemo(() => {
     let result = allGames.filter((game) => {
       // Platform filter
-      if (activePlatform === 'PC' && game.platform === 'Android') return false;
-      if (activePlatform === 'Android' && game.platform === 'PC') return false;
+      if (activePlatform === 'PC' && game.platform !== 'PC' && game.platform !== 'Ambos') return false;
+      if (activePlatform === 'Android' && game.platform !== 'Android' && game.platform !== 'Ambos') return false;
+      if (activePlatform === 'Programas PC' && game.platform !== 'Programas PC') return false;
 
       // Category filter
       if (selectedCategory !== 'Todos' && game.category !== selectedCategory) return false;
@@ -209,6 +293,17 @@ export default function App() {
     el?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleScrollToRanking = () => {
+    const el = document.getElementById('ranking-posteadores');
+    el?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSearchUploader = (term: string) => {
+    setSearchQuery(term);
+    const galEl = document.getElementById('galeria-juegos');
+    galEl?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
       isLight ? 'bg-[#f0f4f9] text-slate-800 selection:bg-cyan-200 selection:text-cyan-900' : 'bg-[#050711] text-slate-100 selection:bg-cyan-500 selection:text-black'
@@ -221,10 +316,14 @@ export default function App() {
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onScrollToComments={handleScrollToComments}
+        onScrollToRanking={handleScrollToRanking}
         onFocusSearch={handleFocusSearch}
         onShowTrending={handleShowTrending}
         theme={theme}
         onToggleTheme={toggleTheme}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
       />
 
       {/* 2. Main Hero Banner with stylized PortalxD.com logo & neon controller art */}
@@ -259,80 +358,86 @@ export default function App() {
               const likes = likesMap[game.id] ?? game.likesCount ?? 0;
 
               return (
-                <div
+                <Interactive3DTilt
                   key={game.id}
-                  onClick={() => handleSelectGame(game)}
-                  className={`group relative h-48 sm:h-56 rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${
-                    isLight
-                      ? 'border-slate-300 hover:border-cyan-500 shadow-[0_4px_20px_rgba(2,132,199,0.15)] hover:shadow-[0_8px_30px_rgba(2,132,199,0.25)]'
-                      : 'border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.45)]'
-                  }`}
+                  maxTilt={10}
+                  scale={1.03}
+                  className="rounded-2xl"
                 >
-                  <img
-                    src={game.image}
-                    alt={game.title}
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 filter brightness-90 group-hover:brightness-105"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                  <div
+                    onClick={() => handleSelectGame(game)}
+                    className={`group relative h-48 sm:h-56 rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${
+                      isLight
+                        ? 'border-slate-300 hover:border-cyan-500 shadow-[0_4px_20px_rgba(2,132,199,0.15)] hover:shadow-[0_8px_30px_rgba(2,132,199,0.25)]'
+                        : 'border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.45)]'
+                    }`}
+                  >
+                    <img
+                      src={game.image}
+                      alt={game.title}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 filter brightness-90 group-hover:brightness-105"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
 
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-black/70 border border-slate-700 backdrop-blur-xs text-cyan-300">
-                    {game.platform === 'PC' ? <Monitor className="w-3 h-3" /> : <Smartphone className="w-3 h-3" />}
-                    <span>{game.platform === 'Ambos' ? 'PC & Android' : game.platform}</span>
-                  </div>
-
-                  {/* Botón de Me Gusta en la imagen de Destacados */}
-                  <div className="absolute top-3 right-3 flex items-center gap-2">
-                    <button
-                      onClick={(e) => handleToggleLike(game.id, e)}
-                      title={isLiked ? 'Quitar Me Gusta' : 'Dar Me Gusta'}
-                      className={`h-8 px-2.5 rounded-full flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer backdrop-blur-sm border ${
-                        isLiked
-                          ? 'bg-pink-950/90 border-pink-400 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.7)]'
-                          : 'bg-black/60 border-slate-700 text-slate-200 hover:text-pink-400 hover:border-pink-500/50'
-                      }`}
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-pink-500 text-pink-400' : ''}`} />
-                      <span className="font-mono text-[11px]">
-                        {likes > 999 ? `${(likes / 1000).toFixed(1)}k` : likes}
-                      </span>
-                    </button>
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
-                    <div>
-                      <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
-                        {game.category}
-                      </span>
-                      <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
-                        {game.title}
-                      </h3>
-                      <span className="text-xs text-slate-300 font-medium">
-                        {game.fileSize} · {game.version}
-                      </span>
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-black/70 border border-slate-700 backdrop-blur-xs text-cyan-300 pointer-events-none">
+                      {game.platform === 'PC' ? <Monitor className="w-3 h-3" /> : <Smartphone className="w-3 h-3" />}
+                      <span>{game.platform === 'Ambos' ? 'PC & Android' : game.platform}</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {/* Botón de Me Gusta en la imagen de Destacados */}
+                    <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectGame(game, 'comentarios');
-                        }}
-                        className="p-1.5 rounded-lg bg-black/60 hover:bg-[#1877F2] text-white border border-slate-700 transition-colors cursor-pointer"
-                        title="Ver comentarios de Facebook"
+                        onClick={(e) => handleToggleLike(game.id, e)}
+                        title={isLiked ? 'Quitar Me Gusta' : 'Dar Me Gusta'}
+                        className={`h-8 px-2.5 rounded-full flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer backdrop-blur-sm border ${
+                          isLiked
+                            ? 'bg-pink-950/90 border-pink-400 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.7)]'
+                            : 'bg-black/60 border-slate-700 text-slate-200 hover:text-pink-400 hover:border-pink-500/50'
+                        }`}
                       >
-                        <MessageSquare className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        onClick={(e) => handleQuickDownload(game, e)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-white neon-glow-btn cursor-pointer"
-                      >
-                        Descargar
+                        <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-pink-500 text-pink-400' : ''}`} />
+                        <span className="font-mono text-[11px]">
+                          {likes > 999 ? `${(likes / 1000).toFixed(1)}k` : likes}
+                        </span>
                       </button>
                     </div>
+
+                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 z-10">
+                      <div>
+                        <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
+                          {game.category}
+                        </span>
+                        <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                          {game.title}
+                        </h3>
+                        <span className="text-xs text-slate-300 font-medium">
+                          {game.fileSize} · {game.version}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectGame(game, 'comentarios');
+                          }}
+                          className="p-1.5 rounded-lg bg-black/60 hover:bg-[#1877F2] text-white border border-slate-700 transition-colors cursor-pointer"
+                          title="Ver comentarios de Facebook"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={(e) => handleQuickDownload(game, e)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-white neon-glow-btn cursor-pointer"
+                        >
+                          Descargar
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Interactive3DTilt>
               );
             })}
           </div>
@@ -359,17 +464,36 @@ export default function App() {
           theme={theme}
         />
 
-        {/* 5. Live Community Comments Box (Muro de Comentarios General) */}
-        <CommunityCommentWall theme={theme} />
+        {/* 5. Ranking Neón de Top Posteadores y Uploaders */}
+        <TopPostersRanking
+          theme={theme}
+          onOpenUploadModal={() => setIsUploadModalOpen(true)}
+          onSearchUploader={handleSearchUploader}
+          onToastMessage={(msg, type) => showToast('Ranking Neón', msg, type === 'success' ? 'success' : 'info')}
+        />
 
-        {/* 6. Community & Social Networks Bar */}
+        {/* 6. Live Community Comments Box (Muro de Comentarios General) */}
+        <CommunityCommentWall
+          theme={theme}
+          currentUser={currentUser}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        />
+
+        {/* 7. Preguntas Frecuentes (FAQ) y Conocimiento */}
+        <FaqSection
+          theme={theme}
+          onOpenUploadModal={() => setIsUploadModalOpen(true)}
+          onOpenGuideModal={() => setIsGuideModalOpen(true)}
+        />
+
+        {/* 7. Community & Social Networks Bar */}
         <SocialBar theme={theme} />
       </main>
 
-      {/* 7. Side Neon Radio Player */}
+      {/* 8. Side Neon Radio Player */}
       <NeonRadioPlayer streamUrl="https://technoplayerserver.net/8202/stream" theme={theme} />
 
-      {/* 8. Game Download & Facebook Comments Modal */}
+      {/* 9. Game Download & Facebook Comments Modal */}
       <GameDetailModal
         game={selectedGame}
         onClose={() => setSelectedGame(null)}
@@ -380,33 +504,71 @@ export default function App() {
         theme={theme}
       />
 
-      {/* 9. Upload Game Modal (User can upload games to the web) */}
+      {/* 10. Upload Game Modal (User can upload games to the web) */}
       <UploadGameModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onGameUploaded={handleGameUploaded}
         theme={theme}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
       />
 
-      {/* 10. Request Game Modal */}
+      {/* 11. Request Game Modal */}
       <RequestGameModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
         theme={theme}
       />
 
-      {/* 11. Installation Guide Modal */}
+      {/* 12. Installation Guide Modal */}
       <InstallationGuideModal
         isOpen={isGuideModalOpen}
         onClose={() => setIsGuideModalOpen(false)}
         theme={theme}
       />
 
-      {/* 12. Footer */}
+      {/* 13. Legal Terms & DMCA Modal (Términos Reservados) */}
+      <LegalTermsModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalInitialTab}
+        theme={theme}
+      />
+
+      {/* 14. User Registration & Login Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        theme={theme}
+      />
+
+      {/* 15. User Profile Modal */}
+      {currentUser && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          user={currentUser}
+          onUpdateProfile={handleUpdateProfile}
+          onLogout={handleLogout}
+          theme={theme}
+        />
+      )}
+
+      {/* 16. Neon Toast Feedback System */}
+      <NeonToast
+        toast={toastMessage}
+        onClose={() => setToastMessage(null)}
+        theme={theme}
+      />
+
+      {/* 15. Footer con Términos Reservados y Enlaces Legales */}
       <Footer
         onSelectPlatform={setActivePlatform}
         onOpenRequestModal={() => setIsRequestModalOpen(true)}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
+        onOpenLegalModal={handleOpenLegal}
         theme={theme}
       />
     </div>

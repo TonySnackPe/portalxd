@@ -53,11 +53,11 @@ export const GameGallery: React.FC<GameGalleryProps> = ({
             <h2 className={`text-xl sm:text-2xl font-black tracking-wide ${
               isLight ? 'text-slate-900' : 'text-white'
             }`}>
-              Catálogo de Juegos Neon
+              Catálogo de Juegos y Programas PC
             </h2>
           </div>
           <p className={`mt-1 text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            {games.length} {games.length === 1 ? 'juego disponible' : 'juegos disponibles'} con descarga directa, likes y comentarios de Facebook
+            {games.length} {games.length === 1 ? 'aporte disponible' : 'aportes disponibles'} (Juegos, Windows 10/11, Antivirus y Utilidades)
           </p>
         </div>
 

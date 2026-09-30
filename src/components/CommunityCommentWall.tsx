@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, ThumbsUp, Flame, Heart, Gamepad2, User, Sparkles, Filter, Pin } from 'lucide-react';
-import { Theme } from '../types';
+import { MessageSquare, Send, ThumbsUp, Flame, Heart, Gamepad2, User, Sparkles, Filter, Pin, Globe, Calendar, LogIn } from 'lucide-react';
+import { Theme, UserProfile } from '../types';
 
 interface WallComment {
   id: string;
@@ -14,6 +14,9 @@ interface WallComment {
   userLiked?: boolean;
   gameMention?: string;
   isPinned?: boolean;
+  country?: string;
+  countryFlag?: string;
+  age?: number;
 }
 
 const INITIAL_WALL_COMMENTS: WallComment[] = [
@@ -23,6 +26,9 @@ const INITIAL_WALL_COMMENTS: WallComment[] = [
     badge: 'Administrador',
     badgeColor: 'text-pink-400 bg-pink-950/80 border-pink-400/50',
     timeAgo: 'Fijado',
+    country: 'México',
+    countryFlag: '🇲🇽',
+    age: 26,
     content: '¡Bienvenidos a la caja de comentarios oficial de PortalxD.com! 🎮 Aquí pueden dejar sus opiniones, pedir nuevos títulos, avisar si algún mirror necesita actualización o compartir cómo les funcionaron los juegos en sus computadoras y celulares. ¡Los servidores están al 100%!',
     likes: 142,
     isPinned: true,
@@ -33,6 +39,9 @@ const INITIAL_WALL_COMMENTS: WallComment[] = [
     badge: 'Gamer Pro',
     badgeColor: 'text-cyan-400 bg-cyan-950/80 border-cyan-400/50',
     timeAgo: 'Hace 30 minutos',
+    country: 'Argentina',
+    countryFlag: '🇦🇷',
+    age: 22,
     content: 'Acabo de probar el Cyber Overdrive y me corre a 120 FPS estables con una RTX 3060. Increíble que venga todo pre-activado sin vueltas. Gracias por el trabajo equipo PortalxD.',
     likes: 38,
     gameMention: 'Cyber Overdrive',
@@ -43,6 +52,9 @@ const INITIAL_WALL_COMMENTS: WallComment[] = [
     badge: 'Modder FNF',
     badgeColor: 'text-emerald-400 bg-emerald-950/80 border-emerald-400/50',
     timeAgo: 'Hace 2 horas',
+    country: 'Colombia',
+    countryFlag: '🇨🇴',
+    age: 19,
     content: 'Para los que juegan en celular Android: el FNF Neon Beat Edition tiene los controles táctiles bien calibrados, no hay delay en las notas de ritmo. 10/10.',
     likes: 29,
     gameMention: 'Friday Night Funkin',
@@ -53,6 +65,9 @@ const INITIAL_WALL_COMMENTS: WallComment[] = [
     badge: 'Miembro',
     badgeColor: 'text-slate-300 bg-slate-800 border-slate-700',
     timeAgo: 'Hace 4 horas',
+    country: 'Chile',
+    countryFlag: '🇨🇱',
+    age: 24,
     content: '¿Alguien sabe si el GTA San Andreas Neon Mod funciona con mando Bluetooth en Android 14? Lo descargué de MediaFire y bajó en 2 minutos.',
     likes: 15,
     gameMention: 'GTA San Andreas',
@@ -61,9 +76,15 @@ const INITIAL_WALL_COMMENTS: WallComment[] = [
 
 interface CommunityCommentWallProps {
   theme?: Theme;
+  currentUser?: UserProfile | null;
+  onOpenAuthModal?: () => void;
 }
 
-export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({ theme = 'neon-dark' }) => {
+export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({
+  theme = 'neon-dark',
+  currentUser,
+  onOpenAuthModal,
+}) => {
   const isLight = theme === 'neon-light';
   const storageKey = 'portalxd_community_wall_comments';
 
@@ -96,9 +117,13 @@ export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({ them
 
     const newComment: WallComment = {
       id: `wall-${Date.now()}`,
-      author: authorName.trim() || 'Gamer_PortalxD',
-      badge: 'Miembro',
-      badgeColor: 'text-cyan-400 bg-cyan-950/80 border-cyan-400/50',
+      author: currentUser ? currentUser.username : (authorName.trim() || 'Gamer_PortalxD'),
+      avatar: currentUser?.avatar,
+      country: currentUser?.country,
+      countryFlag: currentUser?.countryFlag,
+      age: currentUser?.age,
+      badge: currentUser ? currentUser.role : 'Miembro',
+      badgeColor: currentUser ? 'text-amber-400 bg-amber-950/80 border-amber-400/50' : 'text-cyan-400 bg-cyan-950/80 border-cyan-400/50',
       timeAgo: 'Justo ahora',
       content: commentText.trim(),
       likes: 1,
@@ -199,25 +224,61 @@ export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({ them
             </p>
 
             <form onSubmit={handlePostComment} className="space-y-3.5 text-xs">
-              <div>
-                <label className={`block font-bold uppercase tracking-wider mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  Tu Nombre o Nickname
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={authorName}
-                    onChange={(e) => setAuthorName(e.target.value)}
-                    placeholder="Ej: DarkPlayer_99"
-                    className={`w-full py-2 pl-8 pr-3 rounded-lg border focus:outline-none ${
-                      isLight 
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500' 
-                        : 'bg-slate-950 border-slate-700 text-white focus:border-cyan-400'
-                    }`}
-                  />
-                  <User className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-cyan-400" />
+              {currentUser ? (
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-cyan-500/40 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.username}
+                      className="w-9 h-9 rounded-xl object-cover border border-cyan-400"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-white text-xs">{currentUser.username}</span>
+                        <span>{currentUser.countryFlag}</span>
+                      </div>
+                      <span className="text-[10px] text-cyan-300 font-mono">
+                        {currentUser.country} · {currentUser.age} años
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold">
+                    Gamer Conectado
+                  </span>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={`block font-bold uppercase tracking-wider ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      Tu Nombre o Nickname
+                    </label>
+                    {onOpenAuthModal && (
+                      <button
+                        type="button"
+                        onClick={onOpenAuthModal}
+                        className="text-[11px] font-bold text-cyan-400 hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <LogIn className="w-3 h-3" />
+                        <span>Regístrate con País y Foto</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      placeholder="Ej: DarkPlayer_99"
+                      className={`w-full py-2 pl-8 pr-3 rounded-lg border focus:outline-none ${
+                        isLight 
+                          ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500' 
+                          : 'bg-slate-950 border-slate-700 text-white focus:border-cyan-400'
+                      }`}
+                    />
+                    <User className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-cyan-400" />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className={`block font-bold uppercase tracking-wider mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
@@ -290,6 +351,18 @@ export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({ them
               {/* Comment Header */}
               <div className="flex items-center justify-between gap-2 mb-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
+                  {comment.avatar ? (
+                    <img
+                      src={comment.avatar}
+                      alt={comment.author}
+                      className="w-7 h-7 rounded-lg object-cover border border-cyan-400 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 font-bold text-xs flex-shrink-0">
+                      {comment.author.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+
                   {comment.isPinned && (
                     <span className="flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-pink-950 text-pink-300 border border-pink-500/50">
                       <Pin className="w-3 h-3" /> Fijado
@@ -299,6 +372,18 @@ export const CommunityCommentWall: React.FC<CommunityCommentWallProps> = ({ them
                   <span className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {comment.author}
                   </span>
+
+                  {comment.countryFlag && (
+                    <span className="text-sm" title={comment.country}>
+                      {comment.countryFlag}
+                    </span>
+                  )}
+
+                  {comment.age && (
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {comment.age}a
+                    </span>
+                  )}
 
                   {comment.badge && (
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${comment.badgeColor || 'text-cyan-300 bg-cyan-950 border-cyan-800'}`}>

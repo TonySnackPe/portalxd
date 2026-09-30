@@ -1,7 +1,7 @@
 import React from 'react';
 import bannerImage from '../assets/images/portalxd_neon_controllers_banner_1790728691850.jpg';
 import { PortalXdLogo } from './PortalXdLogo';
-import { Search, Sparkles, ShieldCheck, Zap, Download, Gamepad, Smartphone } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Zap, Download, Gamepad, Smartphone, Monitor } from 'lucide-react';
 import { Platform, Theme } from '../types';
 
 interface MainBannerProps {
@@ -82,43 +82,47 @@ export const MainBanner: React.FC<MainBannerProps> = ({
         </div>
 
         {/* Headline with Neon Balance */}
-        <h1 className={`mt-3 text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight max-w-3xl ${
+        <h1 className={`mt-3 text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight max-w-4xl ${
           isLight ? 'text-slate-900 drop-shadow-sm' : 'text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]'
         }`}>
-          Tu Portal Favorito de{' '}
+          Tu Portal de{' '}
           <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
             isLight
               ? 'from-blue-700 via-cyan-600 to-sky-700'
               : 'from-cyan-400 via-sky-300 to-blue-500 neon-text-cyan'
           }`}>
             Juegos PC
-          </span>{' '}
-          y{' '}
+          </span>
+          {', '}
           <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
             isLight
               ? 'from-emerald-700 via-teal-600 to-green-700'
               : 'from-emerald-400 via-lime-300 to-green-500 neon-text-green'
           }`}>
             Android APK
+          </span>{' '}
+          y{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-violet-400 drop-shadow-[0_0_12px_rgba(168,85,247,0.5)]">
+            Programas Windows
           </span>
         </h1>
 
-        <p className={`mt-4 text-sm sm:text-base max-w-2xl font-medium leading-relaxed ${
+        <p className={`mt-4 text-sm sm:text-base max-w-3xl font-medium leading-relaxed ${
           isLight ? 'text-slate-600' : 'text-slate-300 drop-shadow'
         }`}>
-          Descarga los títulos más jugados, mods exclusivos de FNF, repacks testeados y APKs con dinero ilimitado. 
-          Servidores directos de alta velocidad, sin virus y verificados al 100%.
+          Descarga juegos testeados, APKs, ISOs de Windows 10 y 11, Antivirus, librerías DirectX / Visual C++ y utilidades para tu PC. 
+          Enlaces directos sin publicidad engañosa y con contraseña oficial <strong className="text-cyan-400">PortalxD.com</strong>.
         </p>
 
         {/* Platform Quick Switch Tabs (Segmented neon controls) */}
-        <div className={`mt-7 flex items-center justify-center p-1.5 rounded-xl border backdrop-blur-md ${
+        <div className={`mt-7 flex flex-wrap items-center justify-center p-1.5 rounded-2xl border backdrop-blur-md gap-1 ${
           isLight
             ? 'bg-white/90 border-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.06)]'
             : 'bg-slate-900/90 border-slate-700/80 shadow-[0_8px_30px_rgba(0,0,0,0.8)]'
         }`}>
           <button
             onClick={() => onSelectPlatform('Ambos')}
-            className={`px-4 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-1.5 ${
               activePlatform === 'Ambos'
                 ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_18px_rgba(6,182,212,0.6)]'
                 : isLight
@@ -127,12 +131,12 @@ export const MainBanner: React.FC<MainBannerProps> = ({
             }`}
           >
             <Download className="w-4 h-4" />
-            <span>Todos los Juegos</span>
+            <span>Todo el Catálogo</span>
           </button>
 
           <button
             onClick={() => onSelectPlatform('PC')}
-            className={`px-4 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-1.5 ${
               activePlatform === 'PC'
                 ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_18px_rgba(56,189,248,0.6)]'
                 : isLight
@@ -141,12 +145,12 @@ export const MainBanner: React.FC<MainBannerProps> = ({
             }`}
           >
             <Gamepad className="w-4 h-4 text-cyan-500" />
-            <span>Juegos de PC</span>
+            <span>Juegos PC</span>
           </button>
 
           <button
             onClick={() => onSelectPlatform('Android')}
-            className={`px-4 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-1.5 ${
               activePlatform === 'Android'
                 ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-[0_0_18px_rgba(16,185,129,0.6)]'
                 : isLight
@@ -156,6 +160,20 @@ export const MainBanner: React.FC<MainBannerProps> = ({
           >
             <Smartphone className="w-4 h-4 text-emerald-500" />
             <span>Celulares Android</span>
+          </button>
+
+          <button
+            onClick={() => onSelectPlatform('Programas PC')}
+            className={`px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer flex items-center gap-1.5 ${
+              activePlatform === 'Programas PC'
+                ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white shadow-[0_0_18px_rgba(168,85,247,0.7)]'
+                : isLight
+                ? 'text-slate-600 hover:text-purple-700'
+                : 'text-slate-400 hover:text-purple-300'
+            }`}
+          >
+            <Monitor className="w-4 h-4 text-purple-400" />
+            <span>Programas PC & Windows</span>
           </button>
         </div>
 
@@ -167,7 +185,7 @@ export const MainBanner: React.FC<MainBannerProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Buscar por título (Cyberpunk, FNF, GTA, Mech Arena, Shooters...)"
+              placeholder="Buscar juegos o programas (Windows 11, Antivirus, Photoshop, GTA, FNF...)"
               className={`w-full py-3.5 pl-12 pr-28 text-sm sm:text-base rounded-xl transition-all ${
                 isLight
                   ? 'bg-white text-slate-900 placeholder-slate-400 border-2 border-cyan-400/70 focus:outline-none focus:border-cyan-600 focus:shadow-[0_0_20px_rgba(2,132,199,0.3)] shadow-[0_2px_15px_rgba(0,0,0,0.06)]'

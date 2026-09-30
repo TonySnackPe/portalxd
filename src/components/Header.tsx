@@ -1,7 +1,7 @@
 import React from 'react';
 import { PortalXdLogo } from './PortalXdLogo';
-import { Search, Gamepad2, Smartphone, Flame, BookOpen, Sun, Moon, Upload, MessageSquare } from 'lucide-react';
-import { Platform, Theme } from '../types';
+import { Search, Gamepad2, Smartphone, Monitor, Flame, BookOpen, Sun, Moon, Upload, MessageSquare, Trophy, User } from 'lucide-react';
+import { Platform, Theme, UserProfile } from '../types';
 
 interface HeaderProps {
   activePlatform: Platform;
@@ -10,10 +10,14 @@ interface HeaderProps {
   onOpenGuideModal: () => void;
   onOpenUploadModal: () => void;
   onScrollToComments: () => void;
+  onScrollToRanking?: () => void;
   onFocusSearch: () => void;
   onShowTrending: () => void;
   theme: Theme;
   onToggleTheme: () => void;
+  currentUser?: UserProfile | null;
+  onOpenAuthModal: () => void;
+  onOpenProfileModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,10 +27,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGuideModal,
   onOpenUploadModal,
   onScrollToComments,
+  onScrollToRanking,
   onFocusSearch,
   onShowTrending,
   theme,
   onToggleTheme,
+  currentUser,
+  onOpenAuthModal,
+  onOpenProfileModal,
 }) => {
   const isLight = theme === 'neon-light';
 
@@ -81,6 +89,22 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
+            onClick={() => onSelectPlatform('Programas PC')}
+            className={`transition-colors flex items-center gap-1.5 cursor-pointer pb-0.5 border-b-2 ${
+              activePlatform === 'Programas PC'
+                ? isLight
+                  ? 'text-purple-700 border-purple-600 font-bold'
+                  : 'text-purple-400 border-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.7)]'
+                : isLight
+                ? 'text-slate-600 border-transparent hover:text-purple-600 hover:border-purple-400'
+                : 'text-slate-300 border-transparent hover:text-purple-300 hover:border-purple-500/50'
+            }`}
+          >
+            <Monitor className="w-4 h-4 text-purple-400" />
+            <span>Programas & Windows</span>
+          </button>
+
+          <button
             onClick={onShowTrending}
             className={`transition-colors flex items-center gap-1.5 cursor-pointer pb-0.5 border-b-2 border-transparent ${
               isLight
@@ -103,6 +127,20 @@ export const Header: React.FC<HeaderProps> = ({
             <MessageSquare className="w-4 h-4 text-cyan-400" />
             <span>Comunidad</span>
           </button>
+
+          {onScrollToRanking && (
+            <button
+              onClick={onScrollToRanking}
+              className={`transition-all flex items-center gap-1.5 cursor-pointer pb-0.5 border-b-2 border-transparent ${
+                isLight
+                  ? 'text-amber-600 hover:text-amber-700 font-bold hover:border-amber-400'
+                  : 'text-amber-400 hover:text-amber-300 font-bold hover:border-amber-400/60 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
+              }`}
+            >
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>Ranking</span>
+            </button>
+          )}
 
           <button
             onClick={onOpenRequestModal}
@@ -134,12 +172,54 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenUploadModal}
             className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-[0_0_12px_rgba(16,185,129,0.4)] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-            title="Subir un juego a PortalxD.com"
+            title="Subir un juego o programa a PortalxD.com"
           >
             <Upload className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Subir Juego</span>
             <span className="sm:hidden">Subir</span>
           </button>
+
+          {/* User Account Button (Registered Profile or Register/Login Button) */}
+          {currentUser ? (
+            <button
+              onClick={onOpenProfileModal}
+              className={`flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-xl border transition-all cursor-pointer ${
+                isLight
+                  ? 'bg-slate-100 hover:bg-slate-200 border-slate-300'
+                  : 'bg-slate-900/90 hover:bg-slate-800 border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.35)]'
+              }`}
+              title={`Ver perfil de ${currentUser.username} (${currentUser.country})`}
+            >
+              <div className="relative">
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.username}
+                  className="w-7 h-7 rounded-lg object-cover border border-cyan-400"
+                />
+                <span className="absolute -bottom-1 -right-1 text-[11px] leading-none drop-shadow">
+                  {currentUser.countryFlag}
+                </span>
+              </div>
+              <div className="hidden md:flex flex-col text-left">
+                <span className={`text-xs font-bold leading-tight ${isLight ? 'text-slate-800' : 'text-white'}`}>
+                  {currentUser.username}
+                </span>
+                <span className="text-[10px] text-cyan-400 font-mono leading-tight">
+                  {currentUser.age}a · {currentUser.country}
+                </span>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAuthModal}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:from-blue-500 hover:to-teal-400 shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              title="Registrarse con foto, país y edad en PortalxD"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Registro Gamer</span>
+              <span className="sm:hidden">Entrar</span>
+            </button>
+          )}
 
           {/* Global Theme Selector */}
           <button

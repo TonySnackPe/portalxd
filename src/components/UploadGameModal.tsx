@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Upload, Sparkles, CheckCircle2, Monitor, Smartphone, Image as ImageIcon, Link as LinkIcon, HardDrive, FileText, Check } from 'lucide-react';
-import { Game, Platform, Category, Theme } from '../types';
+import { X, Upload, Sparkles, CheckCircle2, Monitor, Smartphone, Image as ImageIcon, Link as LinkIcon, HardDrive, FileText, Check, Lock, ArrowRight } from 'lucide-react';
+import { Game, Platform, Category, Theme, UserProfile } from '../types';
 import { CATEGORIES } from '../data/games';
 
 interface UploadGameModalProps {
@@ -8,6 +8,8 @@ interface UploadGameModalProps {
   onClose: () => void;
   onGameUploaded: (newGame: Game) => void;
   theme?: Theme;
+  currentUser?: UserProfile | null;
+  onOpenAuthModal?: () => void;
 }
 
 export const UploadGameModal: React.FC<UploadGameModalProps> = ({
@@ -15,6 +17,8 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
   onClose,
   onGameUploaded,
   theme = 'neon-dark',
+  currentUser,
+  onOpenAuthModal,
 }) => {
   const isLight = theme === 'neon-light';
 
@@ -23,7 +27,6 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
   const [category, setCategory] = useState<Category>('Acción');
   const [fileSize, setFileSize] = useState('');
   const [version, setVersion] = useState('v1.0 Full Español');
-  const [uploaderName, setUploaderName] = useState('');
   const [downloadServer, setDownloadServer] = useState<'MediaFire' | 'Mega.nz' | 'Google Drive' | 'APK Direct'>('MediaFire');
   const [downloadUrl, setDownloadUrl] = useState('');
   const [shortDescription, setShortDescription] = useState('');
@@ -39,6 +42,71 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
   ];
 
   if (!isOpen) return null;
+
+  // GATED ACCESS: Must be registered to upload games
+  if (!currentUser) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+        <div className={`relative w-full max-w-md rounded-3xl border shadow-2xl p-6 sm:p-8 text-center transition-all ${
+          isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.25)]'
+        }`}>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <h3 className={`text-xl sm:text-2xl font-black mb-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Registro Requerido para Subir Juegos
+          </h3>
+
+          <p className={`text-xs sm:text-sm mb-6 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+            Para mantener los juegos y programas de <strong>PortalxD.com</strong> limpios, 100% testeados y sin virus, solo los usuarios registrados con su país y foto pueden publicar.
+          </p>
+
+          <div className="space-y-2.5 text-left mb-6 p-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
+            <div className="flex items-center gap-2 text-cyan-300">
+              <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <span>Tu foto y bandera nacional aparecerán en el aporte</span>
+            </div>
+            <div className="flex items-center gap-2 text-amber-300">
+              <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <span>Ganas <strong>+50 Puntos</strong> y entras al Ranking Neón</span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>Insignia oficial de Uploader Verificado</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => {
+                onClose();
+                onOpenAuthModal?.();
+              }}
+              className="w-full py-3 px-4 rounded-xl font-black text-sm text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-400 hover:to-pink-500 shadow-[0_0_25px_rgba(245,158,11,0.6)] hover:shadow-[0_0_35px_rgba(245,158,11,0.9)] hover:scale-102 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Registrarme con Foto y País</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Cancelar y volver
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,13 +140,13 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
       likesCount: 1,
       fileSize: fileSize.trim() || (platform === 'Android' ? '450 MB' : '4.5 GB'),
       version: version.trim() || 'v1.0 Final',
-      developer: uploaderName.trim() ? `Subido por ${uploaderName.trim()}` : 'Comunidad PortalxD',
+      developer: currentUser ? `Subido por ${currentUser.username} (${currentUser.country})` : 'Comunidad PortalxD',
       releaseYear: '2026',
-      shortDescription: shortDescription.trim() || `Juego completo para ${platform} verificado y subido por la comunidad de PortalxD.com.`,
-      description: shortDescription.trim() || `Excelente juego para disfrutar en ${platform}. Enlaces directos y libres de virus para toda la comunidad gamer.`,
+      shortDescription: shortDescription.trim() || `Aporte verificado y subido por ${currentUser?.username || 'la comunidad'} para PortalxD.com.`,
+      description: shortDescription.trim() || `Excelente juego o programa para disfrutar en ${platform}. Enlaces directos y libres de virus para toda la comunidad gamer.`,
       features: [
         '100% Funcional y Testeado',
-        `Subido por usuario de la comunidad`,
+        `Uploader verificado: ${currentUser?.username || 'Gamer'} (${currentUser?.country || 'PortalxD'})`,
         'Sin publicidad invasiva',
         'Directo de servidor verificado'
       ],
@@ -144,11 +212,11 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
         <div className="flex items-center gap-2 mb-2">
           <Upload className="w-6 h-6 text-emerald-400" />
           <h2 className={`text-xl sm:text-2xl font-black tracking-wide ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            Subir Juego a PortalxD.com
+            Subir Juego o Programa a PortalxD.com
           </h2>
         </div>
         <p className={`text-xs sm:text-sm mb-6 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-          Comparte tus juegos, repacks o APKs favoritos con la comunidad. Tu publicación aparecerá de inmediato en la galería con enlaces directos.
+          Comparte tus juegos, Windows 10/11, antivirus o herramientas con la comunidad. Tu publicación aparecerá de inmediato en el catálogo con enlaces directos.
         </p>
 
         {isSuccess ? (
@@ -189,20 +257,20 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
                 <label className={`block font-bold uppercase tracking-wider mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                   Plataforma *
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['PC', 'Android', 'Ambos'] as Platform[]).map((p) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(['PC', 'Android', 'Programas PC', 'Ambos'] as Platform[]).map((p) => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => setPlatform(p)}
-                      className={`py-2 px-2 rounded-lg font-bold border flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      className={`py-2 px-2 rounded-lg font-bold border flex items-center justify-center gap-1.5 cursor-pointer transition-all text-xs ${
                         platform === p
                           ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
                           : isLight ? 'bg-slate-50 text-slate-600 border-slate-200' : 'bg-slate-900 text-slate-400 border-slate-700'
                       }`}
                     >
-                      {p === 'PC' ? <Monitor className="w-3.5 h-3.5" /> : p === 'Android' ? <Smartphone className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
-                      <span>{p}</span>
+                      {p === 'PC' ? <Monitor className="w-3.5 h-3.5" /> : p === 'Android' ? <Smartphone className="w-3.5 h-3.5" /> : p === 'Programas PC' ? <Monitor className="w-3.5 h-3.5 text-purple-400" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      <span>{p === 'PC' ? 'PC' : p === 'Android' ? 'Android' : p === 'Programas PC' ? 'Programas' : 'Ambos'}</span>
                     </button>
                   ))}
                 </div>
@@ -293,19 +361,31 @@ export const UploadGameModal: React.FC<UploadGameModalProps> = ({
 
               <div>
                 <label className={`block font-bold uppercase tracking-wider mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  Tu Nombre o Nickname
+                  Uploader Oficial (Tu Perfil)
                 </label>
-                <input
-                  type="text"
-                  value={uploaderName}
-                  onChange={(e) => setUploaderName(e.target.value)}
-                  placeholder="Tu alias de gamer o modder"
-                  className={`w-full py-2.5 px-3 rounded-lg border focus:outline-none ${
-                    isLight 
-                      ? 'bg-slate-50 border-slate-300 text-slate-900' 
-                      : 'bg-slate-900 border-slate-700 text-white'
-                  }`}
-                />
+                <div className={`p-2.5 rounded-xl border flex items-center justify-between ${
+                  isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-950 border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src={currentUser?.avatar}
+                      alt={currentUser?.username}
+                      className="w-8 h-8 rounded-lg object-cover border border-cyan-400"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-white'}`}>{currentUser?.username}</span>
+                        <span>{currentUser?.countryFlag}</span>
+                      </div>
+                      <span className="text-[10px] text-cyan-400 font-mono">
+                        {currentUser?.country} · {currentUser?.role}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/40 font-bold">
+                    Verificado
+                  </span>
+                </div>
               </div>
 
               {/* Imagen de Portada */}

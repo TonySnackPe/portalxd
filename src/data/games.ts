@@ -428,8 +428,17 @@ export const GAMES_DATA: Game[] = [
   }
 ];
 
+import { PROGRAMS_DATA } from './programs';
+
+export const ALL_ITEMS_DATA: Game[] = [...GAMES_DATA, ...PROGRAMS_DATA];
+
 export const CATEGORIES: Category[] = [
   'Todos',
+  'Sistemas Operativos (Win 10/11)',
+  'Antivirus & Seguridad',
+  'Librerías Gamer',
+  'Utilidades & Sistema',
+  'Edición & Diseño',
   'Acción',
   'Mundo Abierto',
   'Música / FNF',

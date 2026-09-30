@@ -1,6 +1,7 @@
 import React from 'react';
 import { Download, Monitor, Smartphone, Star, HardDrive, Heart, MessageSquare } from 'lucide-react';
 import { Game, Theme } from '../types';
+import { Interactive3DTilt } from './Interactive3DTilt';
 
 interface GameCardProps {
   game: Game;
@@ -60,7 +61,14 @@ export const GameCard: React.FC<GameCardProps> = ({
       icon: Smartphone,
       color: isLight
         ? 'text-emerald-800 bg-emerald-100 border-emerald-300'
-        : 'text-emerald-300 bg-emerald-950/80 border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]',
+        : 'text-emerald-300 bg-emerald-950/80 border-emerald-400/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]',
+    },
+    'Programas PC': {
+      label: 'Software PC',
+      icon: Monitor,
+      color: isLight
+        ? 'text-purple-800 bg-purple-100 border-purple-300'
+        : 'text-purple-300 bg-purple-950/80 border-purple-400/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]',
     },
     Ambos: {
       label: 'PC & Android',
@@ -82,8 +90,8 @@ export const GameCard: React.FC<GameCardProps> = ({
           : 'bg-slate-900/80'
       } ${neonBorderClass}`}
     >
-      {/* 1. Main Game Image with subtle neon glow border */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950">
+      {/* 1. Main Game Image with Interactive 3D Mouse Parallax Movement */}
+      <Interactive3DTilt maxTilt={12} scale={1.03} className="aspect-[4/3] w-full overflow-hidden bg-slate-950">
         <img
           src={game.image}
           alt={game.title}
@@ -93,10 +101,10 @@ export const GameCard: React.FC<GameCardProps> = ({
         />
 
         {/* Ambient neon gradient scrim on bottom of image for contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-75 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-75 transition-opacity pointer-events-none" />
 
         {/* Platform Indicator */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider backdrop-blur-md transition-transform group-hover:scale-105">
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider backdrop-blur-md transition-transform group-hover:scale-105 pointer-events-none">
           <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold border ${platformBadge.color}`}>
             <PlatformIcon className="w-3 h-3" />
             <span>{platformBadge.label}</span>
@@ -104,8 +112,8 @@ export const GameCard: React.FC<GameCardProps> = ({
         </div>
 
         {/* Image Action Buttons: Botón de Me Gusta + Descarga rápida */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
-          {/* Botón de Me Gusta en la imagen (User requested: que cada juego tenga boton de me gusta cada imagen) */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+          {/* Botón de Me Gusta en la imagen */}
           <button
             onClick={(e) => onToggleLike(game.id, e)}
             title={isLiked ? 'Quitar Me Gusta' : 'Dar Me Gusta a este juego'}
@@ -134,7 +142,7 @@ export const GameCard: React.FC<GameCardProps> = ({
         </div>
 
         {/* Category & Rating Bar above bottom edge */}
-        <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs text-slate-300">
+        <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs text-slate-300 pointer-events-auto">
           <span className="font-semibold text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
             {game.category}
           </span>
@@ -145,7 +153,7 @@ export const GameCard: React.FC<GameCardProps> = ({
                 e.stopPropagation();
                 onSelectGame(game, 'comentarios');
               }}
-              className="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded backdrop-blur-xs text-[#1877F2] hover:text-cyan-300 transition-colors font-bold"
+              className="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded backdrop-blur-xs text-[#1877F2] hover:text-cyan-300 transition-colors font-bold cursor-pointer"
               title="Ver comentarios de Facebook"
             >
               <MessageSquare className="w-3 h-3 fill-[#1877F2]" />
@@ -158,7 +166,7 @@ export const GameCard: React.FC<GameCardProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </Interactive3DTilt>
 
       {/* 2. Content & Title Area */}
       <div className="p-4 sm:p-5 flex flex-col flex-grow justify-between gap-3">

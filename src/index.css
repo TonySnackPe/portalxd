@@ -146,6 +146,56 @@
   color: #be185d;
 }
 
+/* Neon Traveling & Rotating Motion Effects */
+@keyframes neon-spin-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes neon-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes neon-laser-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 15px #00f0ff) drop-shadow(0 0 30px #ec4899);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 25px #a855f7) drop-shadow(0 0 45px #10b981);
+  }
+}
+
+.animate-neon-spin {
+  animation: neon-spin-rotate 4s linear infinite;
+}
+
+.animate-neon-spin-slow {
+  animation: neon-spin-rotate 8s linear infinite;
+}
+
+.animate-neon-flow {
+  background-size: 300% 300%;
+  animation: neon-gradient-flow 3s ease infinite;
+}
+
+.animate-neon-pulse-glow {
+  animation: neon-laser-pulse 2s ease-in-out infinite;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

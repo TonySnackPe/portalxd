@@ -140,7 +140,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
           <div className="absolute bottom-4 left-4 sm:left-8 right-16 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-cyan-950 border border-cyan-400/60 text-cyan-300">
-                {game.platform === 'PC' ? 'PC Windows' : game.platform === 'Android' ? 'Android APK' : 'PC & Android'}
+                {game.platform === 'PC' ? 'PC Windows' : game.platform === 'Android' ? 'Android APK' : game.platform === 'Programas PC' ? 'Software PC' : 'PC & Android'}
               </span>
               <span className="text-xs text-slate-300 font-semibold">{game.category}</span>
               <span className="text-xs text-slate-400">· {game.releaseYear}</span>
